@@ -1,0 +1,43 @@
+ #import packages
+import io
+import numpy as np
+import pandas as pd
+import time
+import seaborn as sns
+from bs4 import BeautifulSoup
+import nltk
+from nltk.stem import LancasterStemmer, WordNetLemmatizer,PorterStemmer
+from wordcloud import WordCloud, STOPWORDS
+from textblob import TextBlob
+#downloads the punkt setence tokenizer which spliots texts into sentences
+nltk.download('punkt')
+print("Loading data file now, this could take a while depending on file size")
+#load csv file
+start = time.time()
+df = pd.read_csv('C:/Users/HP/Desktop/data science/ds datasets/rev.csv ')
+df.head()
+#word tokenize and stopwords to split words and remove words of no importance.
+from nltk import word_tokenize
+from nltk.corpus import stopwords
+df['REVIEW-SCORE'].value_counts().plot(kind='bar')
+df['REVIEW'] = df['REVIEW'].astype(str)
+stop = stopwords.words('english')
+df['REVIEW'] = df['REVIEW'].apply(lambda x: " ".join(x for x in x.split() if x not in stop))
+#SIA predicts the polarity of texts in a sentence.
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+#vader lexicon maps lexical features to emotion intensities
+nltk.download('vader_lexicon')
+sid = SentimentIntensityAnalyzer()
+sid.polarity_scores(df.iloc[0]['REVIEW'])
+df['scores'] = df['REVIEW'].apply(lambda review:sid.polarity_scores(review))
+#compound score is the sum of all the lexical ratings
+df['compound'] = df['scores'].apply(lambda d:d['compound'])
+df.head()
+df['score'] = df['compound'].apply(lambda score: 'pos' if score >=0 else 'neg')
+df.head()
+#confusion matrix to calculate accuracy of sentiment analysis conducted
+from sklearn.metrics import accuracy_score,classification_report,confusion_matrix
+accuracy_score(df['LABEL'],df['score'])
+print(classification_report(df['LABEL'],df['score']))
+print(confusion_matrix(df['LABEL'],df['score']))
+df.head() 
